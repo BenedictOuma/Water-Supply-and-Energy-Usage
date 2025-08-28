@@ -271,13 +271,13 @@ state_options = sorted(data['GROUPED_STATE'].unique())
 
 # Sidebar header note
 st.sidebar.markdown(
-    "<div class='sidebar-section' style='margin-bottom:8px;'>Please note that the only acceptable inputs will be those within the specified ranges or categories.</div>", 
+    "<div class='sidebar-section' style='margin-bottom:10px; font-size:12px;'>Please note that the only acceptable inputs will be those within the specified ranges or categories. To see the ranges, visit the main page and expand 'Recommended Value Ranges for Features' section.</div>", 
     unsafe_allow_html=True
 )
 
 # Function to display bold label + input with minimal spacing
 def sidebar_input(label, widget_func, *args, **kwargs):
-    st.sidebar.markdown(f"<div style='font-weight:bold; margin-bottom:2px;'>{label}</div>", unsafe_allow_html=True)
+    st.sidebar.markdown(f"<div style='font-weight:bold; margin-bottom:0px;'>{label}</div>", unsafe_allow_html=True)
     return widget_func("", *args, **kwargs)
 
 # Sidebar inputs with tight spacing
@@ -296,7 +296,7 @@ Population = sidebar_input("POPULATION", st.sidebar.number_input, min_value=3459
 
 # Optional entry section header
 st.sidebar.markdown(
-    "<div class='sidebar-section' style='margin-top:8px; margin-bottom:4px;'>Optional entries. If values are inserted, kindly consider ranges.</div>", 
+    "<div class='sidebar-section' style='margin-top:10px; margin-bottom:4px;'>Optional entries. If values are inserted, kindly consider ranges.</div>", 
     unsafe_allow_html=True
 )
 
