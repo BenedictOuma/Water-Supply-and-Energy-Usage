@@ -277,7 +277,10 @@ st.sidebar.markdown(
 
 # Function to display bold label + input with minimal spacing
 def sidebar_input(label, widget_func, *args, **kwargs):
-    st.sidebar.markdown(f"<div style='font-weight:bold; margin-bottom:0px;'>{label}</div>", unsafe_allow_html=True)
+    st.sidebar.markdown(
+        f"<div style='font-weight:bold; font-size:13px; margin-bottom:0px;'>{label}</div>",
+        unsafe_allow_html=True
+    )
     return widget_func("", *args, **kwargs)
 
 # Sidebar inputs with tight spacing
@@ -296,7 +299,7 @@ Population = sidebar_input("POPULATION", st.sidebar.number_input, min_value=3459
 
 # Optional entry section header
 st.sidebar.markdown(
-    "<div class='sidebar-section' style='margin-top:10px; margin-bottom:4px;'>Optional entries. If values are inserted, kindly consider ranges.</div>", 
+    "<div class='sidebar-section' style='margin-top:10px; margin-bottom:4px; font-size:12px;'>Optional entries. If values are inserted, kindly consider ranges.</div>", 
     unsafe_allow_html=True
 )
 
