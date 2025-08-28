@@ -271,52 +271,49 @@ state_options = sorted(data['GROUPED_STATE'].unique())
 
 # Sidebar header note
 st.sidebar.markdown(
-    "<div class='sidebar-section'>Please note that the only acceptable inputs will be those within the specified ranges or categories.</div>", 
-    unsafe_allow_html=True)
+    "<div class='sidebar-section' style='margin-bottom:8px;'>Please note that the only acceptable inputs will be those within the specified ranges or categories.</div>", 
+    unsafe_allow_html=True
+)
 
-# Sidebar inputs
-GROUPED_STATE = st.sidebar.selectbox("STATE", state_options)
-lga = st.sidebar.selectbox("LGA", lga_options)
-pop_density = st.sidebar.number_input("POPULATION DENSITY", min_value=4.36, max_value=34682.19, value=253.11, step=1.0)
-safe_ratio = st.sidebar.number_input("SAFE WATER RATIO", min_value=0.0, max_value=0.0338, value=0.000417, step=0.0001, format="%.6f")
-unsafe_ratio = st.sidebar.number_input("UNSAFE WATER RATIO", min_value=0.0, max_value=0.0169, value=0.000077, step=0.0001, format="%.6f")
-water_diversity = st.sidebar.slider("WATER DIVERSITY", min_value=0, max_value=7, value=3, step=1)
-climate_stress = st.sidebar.number_input("CLIMATE STRESS", min_value=-0.0008, max_value=0.4693, value=0.000174, step=0.0001, format="%.6f")
-compactness = st.sidebar.number_input("COMPACTNESS", min_value=14.05, max_value=87.93, value=23.99, step=0.1)
-Distance_to_Center = st.sidebar.number_input("DISTANCE TO CENTRE", min_value=0.01, max_value=6.22, value=0.69, step=0.01)
-Average_Nighttime_mean = st.sidebar.number_input("AVERAGE NIGHT TIME MEAN", min_value=-0.03, max_value=28.57, value=0.0456, step=0.01)
-AREA = st.sidebar.number_input("AREA", min_value=11.65, max_value=10357.67, value=680.62, step=1.0)
-Population = st.sidebar.number_input("POPULATION", min_value=3459.98, max_value=2181858.0, value=190256.5, step=100.0)
+# Function to display bold label + input with minimal spacing
+def sidebar_input(label, widget_func, *args, **kwargs):
+    st.sidebar.markdown(f"<div style='font-weight:bold; margin-bottom:2px;'>{label}</div>", unsafe_allow_html=True)
+    return widget_func("", *args, **kwargs)
+
+# Sidebar inputs with tight spacing
+GROUPED_STATE = sidebar_input("STATE", st.sidebar.selectbox, state_options)
+lga = sidebar_input("LGA", st.sidebar.selectbox, lga_options)
+pop_density = sidebar_input("POPULATION DENSITY", st.sidebar.number_input, min_value=4.36, max_value=34682.19, value=253.11, step=1.0)
+safe_ratio = sidebar_input("SAFE WATER RATIO", st.sidebar.number_input, min_value=0.0, max_value=0.0338, value=0.000417, step=0.0001, format="%.6f")
+unsafe_ratio = sidebar_input("UNSAFE WATER RATIO", st.sidebar.number_input, min_value=0.0, max_value=0.0169, value=0.000077, step=0.0001, format="%.6f")
+water_diversity = sidebar_input("WATER DIVERSITY", st.sidebar.slider, min_value=0, max_value=7, value=3, step=1)
+climate_stress = sidebar_input("CLIMATE STRESS", st.sidebar.number_input, min_value=-0.0008, max_value=0.4693, value=0.000174, step=0.0001, format="%.6f")
+compactness = sidebar_input("COMPACTNESS", st.sidebar.number_input, min_value=14.05, max_value=87.93, value=23.99, step=0.1)
+Distance_to_Center = sidebar_input("DISTANCE TO CENTRE", st.sidebar.number_input, min_value=0.01, max_value=6.22, value=0.69, step=0.01)
+Average_Nighttime_mean = sidebar_input("AVERAGE NIGHT TIME MEAN", st.sidebar.number_input, min_value=-0.03, max_value=28.57, value=0.0456, step=0.01)
+AREA = sidebar_input("AREA", st.sidebar.number_input, min_value=11.65, max_value=10357.67, value=680.62, step=1.0)
+Population = sidebar_input("POPULATION", st.sidebar.number_input, min_value=3459.98, max_value=2181858.0, value=190256.5, step=100.0)
 
 # Optional entry section header
 st.sidebar.markdown(
-    "<div class='sidebar-section'>Optional entries. If values are inserted, kindly consider ranges.</div>", 
-    unsafe_allow_html=True)
+    "<div class='sidebar-section' style='margin-top:8px; margin-bottom:4px;'>Optional entries. If values are inserted, kindly consider ranges.</div>", 
+    unsafe_allow_html=True
+)
 
-# --- Sidebar filters for Latitude & Longitude ---
-# Convert to GeoDataFrame if you want to keep .geometry
+# Latitude & Longitude sliders with bold labels and tight spacing
 gdf = gpd.GeoDataFrame(
     data, 
     geometry=gpd.points_from_xy(data["Longitude"], data["Latitude"]),
     crs="EPSG:4326"
 )
 
-# Now you can safely do:
-lat_min, lat_max = st.sidebar.slider(
-    "Latitude range",
-    float(gdf.geometry.y.min()),
-    float(gdf.geometry.y.max()),
-    (float(gdf.geometry.y.min()), float(gdf.geometry.y.max())),
-    step=0.01
-)
+lat_min, lat_max = sidebar_input("Latitude range", st.sidebar.slider,
+                                 float(gdf.geometry.y.min()), float(gdf.geometry.y.max()),
+                                 (float(gdf.geometry.y.min()), float(gdf.geometry.y.max())), step=0.01)
 
-lon_min, lon_max = st.sidebar.slider(
-    "Longitude range",
-    float(gdf.geometry.x.min()),
-    float(gdf.geometry.x.max()),
-    (float(gdf.geometry.x.min()), float(gdf.geometry.x.max())),
-    step=0.01
-)
+lon_min, lon_max = sidebar_input("Longitude range", st.sidebar.slider,
+                                 float(gdf.geometry.x.min()), float(gdf.geometry.x.max()),
+                                 (float(gdf.geometry.x.min()), float(gdf.geometry.x.max())), step=0.01)
 
 # Apply filters
 gdf = gdf[
