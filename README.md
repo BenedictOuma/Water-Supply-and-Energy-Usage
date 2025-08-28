@@ -104,7 +104,7 @@ Each row represents a region, with attributes like:
 1. Clone the repository:
 
 ```bash
-git clone <https://github.com/BenedictOuma/Water-Supply-and-Energy-Usage.git>
+git clone https://github.com/BenedictOuma/Water-Supply-and-Energy-Usage.git
 ```
 
 2. Create and activate a Python environment:
