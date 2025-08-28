@@ -19,7 +19,7 @@ from io import BytesIO
 #  APP STYLING
 # =========================
 st.set_page_config(
-    page_title="Water Usage & Energy Consumption in Africa",
+    page_title="Water Supply & Energy Consumption in Africa",
     page_icon="logo/logo.png",
     layout="wide"
 )
@@ -158,7 +158,7 @@ st.markdown(
 )
 
 # App Title & Subtitle
-st.markdown('<h1 class="centered">Water Usage & Energy Supply App</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="centered">Water Supply & Energy Usage App</h1>', unsafe_allow_html=True)
 st.markdown('<h4 class="centered">Sustainable Resource Management (Monitor • Analyze • Optimize)</h4>', unsafe_allow_html=True)
 
 # App Description
@@ -446,119 +446,140 @@ if uploaded_file is not None:
         st.warning(f"Could not read the uploaded file. Please check the format and content. Error: {e}")
 
     # Preview
-    st.write("### Preview of Dataset", df.head())
+    if 'df' in locals():
+        st.write("### Preview of Dataset", df.head())
 
-    # ======================
-    # Visualization Options
-    # ======================
-    st.header("Choose Visualization")
-    plot_type = st.selectbox(
-        "Select plot type:",
-        ["Histogram", "Bar Chart", "Scatter Plot", "Correlation Heatmap", "Folium Map"]
-    )
+    if uploaded_file is not None:
+        uploaded_file.seek(0)
+        try:
+            # Load uploaded file
+            if uploaded_file.name.endswith(".csv"):
+                df = pd.read_csv(uploaded_file)
+            else:
+                df = pd.read_excel(uploaded_file, engine="openpyxl")
 
-    # List of numeric columns excluding Latitude and Longitude
-    numeric_cols = [
-        col for col in df.select_dtypes(include=["int64", "float64"]).columns
-        if col not in ["Latitude", "Longitude"]
-    ]
-
-    # --- Histogram ---
-    if plot_type == "Histogram":
-        col = st.selectbox("Select column", numeric_cols)
-        bins = st.slider("Number of bins", 5, 50, 20)
-        
-        fig, ax = plt.subplots()
-        ax.hist(df[col].dropna(), bins=bins, color="skyblue", edgecolor="black")
-        ax.set_title(f"Histogram of {col}")
-        st.pyplot(fig)
-
-    # --- Bar Chart ---
-    elif plot_type == "Bar Chart":
-        col = st.selectbox("Select categorical column", df.select_dtypes(include=["object"]).columns)
-        fig, ax = plt.subplots()
-        df[col].value_counts().plot(kind="bar", ax=ax, color="orange")
-        ax.set_title(f"Bar Chart of {col}")
-        st.pyplot(fig)
-
-    # --- Scatter Plot with Best Fit Line ---
-    elif plot_type == "Scatter Plot":
-        x_col = st.selectbox("X-axis", numeric_cols)
-        y_col = st.selectbox("Y-axis", numeric_cols)
-        
-        # Round values for plotting only
-        x_vals = df[x_col].round(3)
-        y_vals = df[y_col].round(3)
-        
-        fig, ax = plt.subplots()
-        ax.scatter(x_vals, y_vals, alpha=0.6, c="blue", label="Data Points")
-        
-        # Compute best-fit line
-        slope, intercept = np.polyfit(x_vals, y_vals, 1)
-        best_fit = slope * x_vals + intercept
-        ax.plot(x_vals, best_fit, color="red", linewidth=2, label="Best Fit Line")
-        
-        ax.set_xlabel(x_col)
-        ax.set_ylabel(y_col)
-        ax.set_title(f"Scatter Plot: {x_col} vs {y_col}")
-        ax.legend()
-        
-        st.pyplot(fig)
-
-    # --- Correlation Heatmap ---
-    elif plot_type == "Correlation Heatmap":
-        fig, ax = plt.subplots(figsize=(8, 6))
-        sns.heatmap(df[numeric_cols].corr().round(3), annot=True, cmap="coolwarm", ax=ax)
-        ax.set_title("Correlation Heatmap")
-        st.pyplot(fig)
-
-    # --- Folium Map ---
-    elif plot_type == "Folium Map":
-        # Automatically detect latitude and longitude
-        if "Latitude" in df.columns and "Longitude" in df.columns:
-            lat_col = "Latitude"
-            lon_col = "Longitude"
-
-            # Create GeoDataFrame for consistency
-            gdf_map = gpd.GeoDataFrame(
-                df,
-                geometry=gpd.points_from_xy(df[lon_col], df[lat_col]),
-                crs="EPSG:4326"
-            )
-
-            # Compute Solar_Tier_Label if not present
-            if "Solar_Tier_Label" not in gdf_map.columns:
-                gdf_map["Solar_Tier"] = (
-                    gdf_map["Average_Nighttime_mean"].rank(pct=True) * 0.6 +
-                    gdf_map["pop_density"].rank(pct=True) * 0.4
+            # Optional: check for necessary columns
+            necessary_cols = ["Latitude", "Longitude", "Average_Nighttime_mean", "pop_density"]
+            missing_cols = [col for col in necessary_cols if col not in df.columns]
+            if missing_cols:
+                st.warning(f"The uploaded file is missing required columns: {', '.join(missing_cols)}")
+            else:
+                # ======================
+                # Visualization Options
+                # ======================
+                st.header("Choose Visualization")
+                plot_type = st.selectbox(
+                    "Select plot type:",
+                    ["Histogram", "Bar Chart", "Scatter Plot", "Correlation Heatmap", "Folium Map"]
                 )
-                bins = [0, 0.33, 0.66, 1.0]
-                labels = ["Low", "Medium", "High"]
-                gdf_map["Solar_Tier_Label"] = pd.cut(gdf_map["Solar_Tier"], bins=bins, labels=labels)
 
-            # Define colors
-            tier_colors = {"Low": "red", "Medium": "orange", "High": "green"}
+                # List of numeric columns excluding Latitude and Longitude
+                numeric_cols = [
+                    col for col in df.select_dtypes(include=["int64", "float64"]).columns
+                    if col not in ["Latitude", "Longitude"]
+                ]
 
-            # Center map
-            m = folium.Map(location=[gdf_map[lat_col].mean(), gdf_map[lon_col].mean()], zoom_start=6)
+                # --- Histogram ---
+                if plot_type == "Histogram":
+                    col = st.selectbox("Select column", numeric_cols)
+                    bins = st.slider("Number of bins", 5, 50, 20)
+                    
+                    fig, ax = plt.subplots()
+                    ax.hist(df[col].dropna(), bins=bins, color="skyblue", edgecolor="black")
+                    ax.set_title(f"Histogram of {col}")
+                    st.pyplot(fig)
 
-            # Add points
-            for _, row in gdf_map.iterrows():
-                color = tier_colors.get(row["Solar_Tier_Label"], "blue")
-                folium.CircleMarker(
-                    location=[row[lat_col], row[lon_col]],
-                    radius=6,
-                    color=color,
-                    fill=True,
-                    fill_color=color,
-                    fill_opacity=0.7,
-                    popup=f"Solar Tier: {row['Solar_Tier_Label']}"
-                ).add_to(m)
+                # --- Bar Chart ---
+                elif plot_type == "Bar Chart":
+                    col = st.selectbox("Select categorical column", df.select_dtypes(include=["object"]).columns)
+                    fig, ax = plt.subplots()
+                    df[col].value_counts().plot(kind="bar", ax=ax, color="orange")
+                    ax.set_title(f"Bar Chart of {col}")
+                    st.pyplot(fig)
 
-            st_map = st_folium(m, width=1200, height=500)
+                # --- Scatter Plot with Best Fit Line ---
+                elif plot_type == "Scatter Plot":
+                    x_col = st.selectbox("X-axis", numeric_cols)
+                    y_col = st.selectbox("Y-axis", numeric_cols)
+                    
+                    # Round values for plotting only
+                    x_vals = df[x_col].round(3)
+                    y_vals = df[y_col].round(3)
+                    
+                    fig, ax = plt.subplots()
+                    ax.scatter(x_vals, y_vals, alpha=0.6, c="blue", label="Data Points")
+                    
+                    # Compute best-fit line
+                    slope, intercept = np.polyfit(x_vals, y_vals, 1)
+                    best_fit = slope * x_vals + intercept
+                    ax.plot(x_vals, best_fit, color="red", linewidth=2, label="Best Fit Line")
+                    
+                    ax.set_xlabel(x_col)
+                    ax.set_ylabel(y_col)
+                    ax.set_title(f"Scatter Plot: {x_col} vs {y_col}")
+                    ax.legend()
+                    
+                    st.pyplot(fig)
 
-        else:
-            st.warning("Latitude and Longitude columns are missing. Cannot create Folium map.")
+                # --- Correlation Heatmap ---
+                elif plot_type == "Correlation Heatmap":
+                    fig, ax = plt.subplots(figsize=(8, 6))
+                    sns.heatmap(df[numeric_cols].corr().round(3), annot=True, cmap="coolwarm", ax=ax)
+                    ax.set_title("Correlation Heatmap")
+                    st.pyplot(fig)
+
+                # --- Folium Map ---
+                elif plot_type == "Folium Map":
+                    # Automatically detect latitude and longitude
+                    if "Latitude" in df.columns and "Longitude" in df.columns:
+                        lat_col = "Latitude"
+                        lon_col = "Longitude"
+
+                        # Create GeoDataFrame for consistency
+                        gdf_map = gpd.GeoDataFrame(
+                            df,
+                            geometry=gpd.points_from_xy(df[lon_col], df[lat_col]),
+                            crs="EPSG:4326"
+                        )
+
+                        # Compute Solar_Tier_Label if not present
+                        if "Solar_Tier_Label" not in gdf_map.columns:
+                            gdf_map["Solar_Tier"] = (
+                                gdf_map["Average_Nighttime_mean"].rank(pct=True) * 0.6 +
+                                gdf_map["pop_density"].rank(pct=True) * 0.4
+                            )
+                            bins = [0, 0.33, 0.66, 1.0]
+                            labels = ["Low", "Medium", "High"]
+                            gdf_map["Solar_Tier_Label"] = pd.cut(gdf_map["Solar_Tier"], bins=bins, labels=labels)
+
+                        # Define colors
+                        tier_colors = {"Low": "red", "Medium": "orange", "High": "green"}
+
+                        # Center map
+                        m = folium.Map(location=[gdf_map[lat_col].mean(), gdf_map[lon_col].mean()], zoom_start=6)
+
+                        # Add points
+                        for _, row in gdf_map.iterrows():
+                            color = tier_colors.get(row["Solar_Tier_Label"], "blue")
+                            folium.CircleMarker(
+                                location=[row[lat_col], row[lon_col]],
+                                radius=6,
+                                color=color,
+                                fill=True,
+                                fill_color=color,
+                                fill_opacity=0.7,
+                                popup=f"Solar Tier: {row['Solar_Tier_Label']}"
+                            ).add_to(m)
+
+                        st_map = st_folium(m, width=1200, height=500)
+
+                    else:
+                        st.warning("Latitude and Longitude columns are missing. Cannot create Folium map.")
+
+        except Exception as e:
+            st.warning(f"Cannot process the uploaded file for visualizations. "
+                    f"Ensure it is a valid CSV or Excel file with proper worksheets and data. "
+                    f"Error details: {e}")
 
 else:
-        st.info("⬅️ Please upload a CSV or Excel file to start exploring.")
+    st.info("⬅️ Please upload a CSV or Excel file to start exploring.")
