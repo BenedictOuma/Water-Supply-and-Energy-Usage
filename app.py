@@ -169,7 +169,7 @@ st.markdown(
 )
 
 # Sidebar input header
-st.sidebar.header("Please Upload Your Data provide your Data Inputs")
+st.sidebar.header("Please Upload Your Data (Provide Your Data Inputs)")
 uploaded_file = st.sidebar.file_uploader("Upload CSV or Excel or manually enter the values below", type=["csv", "xlsx"])
 
 # =========================
